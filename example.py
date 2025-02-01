@@ -71,10 +71,42 @@ def main():
         ({(8,6), (8,7)}, 'div', 2),
         ({(8,8)}, '', 4),
     ]
+    n4 = 8
+    groups4 = [
+        ({(0,0), (1,0), (1,1)}, 'mult', 96),
+        ({(0,1), (0,2)}, 'sub', 4),
+        ({(0,3), (0,4)}, 'sub', 3),
+        ({(0,5), (1,5)}, 'add', 9),
+        ({(0,6), (0,7), (1,7)}, 'mult', 24),
+        ({(1,2), (2,2)}, 'div', 4),
+        ({(1,3), (1,4), (2,4)}, 'add', 13),
+        ({(1,6), (2,6)}, 'sub', 1),
+        ({(2,0), (3,0)}, 'mult', 12),
+        ({(2,1), (3,1)}, 'sub', 5),
+        ({(2,3), (3,3)}, 'sub', 5),
+        ({(2,5), (3,5)}, 'add', 9),
+        ({(2,7), (3,7)}, 'div', 3),
+        ({(3,2), (4,2)}, 'div', 4),
+        ({(3,4), (4,4)}, 'div', 3),
+        ({(3,6), (4,6)}, 'mult', 21),
+        ({(4,0), (4,1)}, 'mult', 20),
+        ({(4,3), (5,3)}, 'sub', 2),
+        ({(4,5), (5,5)}, 'mult', 8),
+        ({(4,7), (5,7)}, 'add', 9),
+        ({(5,0), (6,0)}, 'mult', 21),
+        ({(5,1), (5,2)}, 'add', 11),
+        ({(5,4), (6,4)}, 'div', 3),
+        ({(5,6), (6,6)}, 'div', 2),
+        ({(6,1), (6,2)}, 'sub', 3),
+        ({(6,3), (7,3), (7,4)}, 'add', 17),
+        ({(6,5), (7,5)}, 'div', 2),
+        ({(6,7), (7,6), (7,7)}, 'mult', 80),
+        ({(7,0), (7,1), (7,2)}, 'add', 16),
+    ]
     
     
     algorithm = 'ac3+backtracking'
-    solver = ArithmeticPuzzleSolver(n3, groups3)
+    solver = ArithmeticPuzzleSolver(n4, groups4)
     start_time = time.time()
     solution = solver.solve(algorithm)
     print(f"Time taken: {time.time() - start_time:.8f} seconds")
@@ -161,6 +193,38 @@ groups2 = [
     ({(3,0), (3,1)}, 'sub', 3),
     ({(2,2), (3,2), (3,3)}, 'add', 6),
 ]
+n4 = 8
+groups4 = [
+    ({(0,0), (1,0), (1,1)}, 'mult', 96),
+    ({(0,1), (0,2)}, 'sub', 4),
+    ({(0,3), (0,4)}, 'sub', 3),
+    ({(0,5), (1,5)}, 'add', 9),
+    ({(0,6), (0,7), (1,7)}, 'mult', 24),
+    ({(1,2), (2,2)}, 'div', 4),
+    ({(1,3), (1,4), (2,4)}, 'add', 13),
+    ({(1,6), (2,6)}, 'sub', 1),
+    ({(2,0), (3,0)}, 'mult', 12),
+    ({(2,1), (3,1)}, 'sub', 5),
+    ({(2,3), (3,3)}, 'sub', 5),
+    ({(2,5), (3,5)}, 'add', 9),
+    ({(2,7), (3,7)}, 'div', 3),
+    ({(3,2), (4,2)}, 'div', 4),
+    ({(3,4), (4,4)}, 'div', 3),
+    ({(3,6), (4,6)}, 'mult', 21),
+    ({(4,0), (4,1)}, 'mult', 20),
+    ({(4,3), (5,3)}, 'sub', 2),
+    ({(4,5), (5,5)}, 'mult', 8),
+    ({(4,7), (5,7)}, 'add', 9),
+    ({(5,0), (6,0)}, 'mult', 21),
+    ({(5,1), (5,2)}, 'add', 11),
+    ({(5,4), (6,4)}, 'div', 3),
+    ({(5,6), (6,6)}, 'div', 2),
+    ({(6,1), (6,2)}, 'sub', 3),
+    ({(6,3), (7,3), (7,4)}, 'add', 17),
+    ({(6,5), (7,5)}, 'div', 2),
+    ({(6,7), (7,6), (7,7)}, 'mult', 80),
+    ({(7,0), (7,1), (7,2)}, 'add', 16),
+]
 
 
 # TODO: write a function to run each problem 10 times for each algorithm and record the best/worst/average time, then plot the results
@@ -168,11 +232,12 @@ def run_experiment():
     algorithms = ['ac3+backtracking', 'backtracking_no_fc']
     problems = [(n1, groups1), (n2, groups2), (n3, groups3)]
     results = {}
+    raw_results = {}
     for n, groups in problems:
         for algorithm in algorithms:
             solver = ArithmeticPuzzleSolver(n, groups)
             times = []
-            for i in range(3):
+            for i in range(10):
                 start_time = time.time()
                 solution = solver.solve(algorithm)
                 times.append(time.time() - start_time)
@@ -180,8 +245,8 @@ def run_experiment():
             worst_time = max(times)
             avg_time = sum(times) / len(times)
             results[(n, algorithm)] = (best_time, worst_time, avg_time)
-    return results
-
+            raw_results[(n, algorithm)] = times
+    return results, raw_results
 
 
 def plot_results(results):
@@ -191,42 +256,80 @@ def plot_results(results):
     sizes = sorted(list(set(n for n, _ in results.keys())))
     algorithms = sorted(list(set(alg for _, alg in results.keys())))
     
-    # Set up plot
-    width = 0.25
-    x = np.arange(len(sizes))
-    _, ax = plt.subplots(figsize=(12, 6))
+    width = 0.35
     
-    # Plot bars for each algorithm
-    for i, alg in enumerate(algorithms):
-        avg_times = [results[(n, alg)][2] for n in sizes]  # Using average times
-        ax.bar(x + i*width, avg_times, width, label=alg)
+    # Create separate plot for each puzzle size
+    for idx, n in enumerate(sizes):
+        # Create new figure for each size
+        plt.figure(figsize=(8, 6))
+        
+        x = np.arange(len(algorithms))
+        
+        # Get times for this puzzle size
+        avg_times = [results[(n, alg)][2] for alg in algorithms]
+        min_times = [results[(n, alg)][0] for alg in algorithms]
+        max_times = [results[(n, alg)][1] for alg in algorithms]
+        
+        # Create bars
+        plt.bar(x, avg_times, width)
         
         # Add error bars
-        min_times = [results[(n, alg)][0] for n in sizes]
-        max_times = [results[(n, alg)][1] for n in sizes]
         error_low = [avg - min_t for avg, min_t in zip(avg_times, min_times)]
         error_high = [max_t - avg for max_t, avg in zip(max_times, avg_times)]
-        ax.errorbar(x + i*width, avg_times, yerr=[error_low, error_high], 
-                   fmt='none', color='black', capsize=5)
+        plt.errorbar(x, avg_times, yerr=[error_low, error_high], 
+                    fmt='none', color='black', capsize=5)
+        
+        # Customize plot
+        plt.yscale('log')
+        plt.title(f'Puzzle Size {n}x{n}')
+        plt.xticks(x, algorithms, rotation=45)
+        plt.ylabel('Time (seconds)')
+        plt.grid(True, which="both", ls="-", alpha=0.2)
+        plt.tight_layout()
     
-    # Customize plot
-    ax.set_yscale('log')  # Use logarithmic scale for better visibility
-    ax.set_ylabel('Time (seconds)')
-    ax.set_xlabel('Puzzle Size')
-    ax.set_title('Algorithm Performance by Puzzle Size')
-    ax.set_xticks(x + width)
-    ax.set_xticklabels(sizes)
-    ax.legend()
-    ax.grid(True, which="both", ls="-", alpha=0.2)
-    
-    plt.tight_layout()
+    plt.show()
+def plot_results_grouped(results):
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    sizes = sorted(list(set(n for n, _ in results.keys())))
+    algorithms = sorted(list(set(alg for _, alg in results.keys())))
+
+    width = 0.25  # Width of each bar
+
+    for n in sizes:
+        plt.figure(figsize=(10, 6))
+        x = np.arange(len(algorithms))
+
+        # Get times for each metric
+        best_times = [results[(n, alg)][0] for alg in algorithms]
+        avg_times = [results[(n, alg)][2] for alg in algorithms]
+        worst_times = [results[(n, alg)][1] for alg in algorithms]
+
+        # Create grouped bars
+        plt.bar(x - width, best_times, width, label='Best')
+        plt.bar(x, avg_times, width, label='Average')
+        plt.bar(x + width, worst_times, width, label='Worst')
+
+        plt.yscale('log')
+        plt.title(f'Performance Comparison for {n}x{n} Puzzle')
+        plt.xlabel('Algorithms')
+        plt.ylabel('Time (seconds)')
+        plt.xticks(x, algorithms, rotation=45)
+        plt.legend()
+        plt.grid(True, which="both", ls="-", alpha=0.2)
+        plt.tight_layout()
+
     plt.show()
 
 def main2():
-    results = run_experiment()
-    for key in results:
-        print(key, results[key])
+    results, raw_results = run_experiment()
+    for key in raw_results:
+        print(key, raw_results[key])
+    
+    plot_results_grouped(results)
     plot_results(results)
+    
 
 if __name__ == "__main__":
-    main2()
+    main()
